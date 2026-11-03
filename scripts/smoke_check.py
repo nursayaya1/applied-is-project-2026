@@ -36,8 +36,8 @@ if __name__ == "__main__":
         page = AppTest.from_file(str(ROOT / "frontend/app.py")).run(timeout=30)
         assert not page.exception, page.exception
         assert not page.error, page.error
-        assert len(page.tabs) == 3
-        assert len(page.metric) == 3
+        assert len(page.tabs) == 4
+        assert len(page.metric) == 4
         ui = subprocess.Popen([sys.executable, "-m", "streamlit", "run", "frontend/app.py",
                                "--server.port", "18501", "--server.address", "127.0.0.1", "--server.headless", "true",
                                "--browser.gatherUsageStats", "false"], cwd=ROOT)

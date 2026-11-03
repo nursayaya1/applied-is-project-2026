@@ -219,7 +219,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Warehouse project additions
+# Veterinary clinic project additions
 # Python
 __pycache__/
 *.py[cod]

@@ -1,23 +1,29 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net">
-  <diagram name="Warehouse ER" id="warehouse-er">
-    <mxGraphModel grid="1" page="1" pageWidth="1500" pageHeight="700">
+  <diagram name="Veterinary Clinic ER" id="clinic-er">
+    <mxGraphModel grid="1" page="1" pageWidth="1060" pageHeight="1110">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="category" value="Category / Санат&#10;&#10;PK  id : INTEGER&#10;name : TEXT" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eff6ff;strokeColor=#2563eb;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
-          <mxGeometry x="60" y="160" width="370" height="330" as="geometry" />
+        <mxCell id="owner" value="Owner / Иесі&#10;&#10;PK  id : INTEGER&#10;name : TEXT&#10;phone : TEXT" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f0fdfa;strokeColor=#0f766e;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
+          <mxGeometry x="60" y="150" width="420" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="product" value="Product / Тауар&#10;&#10;PK  id : INTEGER&#10;name : TEXT&#10;price_tiyn : INTEGER&#10;quantity : INTEGER&#10;FK  category_id : INTEGER&#10;FK  supplier_id : INTEGER" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eff6ff;strokeColor=#2563eb;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
-          <mxGeometry x="540" y="160" width="370" height="330" as="geometry" />
+        <mxCell id="pet" value="Pet / Жануар&#10;&#10;PK  id : INTEGER&#10;name : TEXT&#10;species : TEXT&#10;age_years : INTEGER&#10;FK  owner_id : INTEGER" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f0fdfa;strokeColor=#0f766e;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
+          <mxGeometry x="560" y="150" width="420" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="supplier" value="Supplier / Жеткізуші&#10;&#10;PK  id : INTEGER&#10;name : TEXT&#10;phone : TEXT" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eff6ff;strokeColor=#2563eb;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
-          <mxGeometry x="1030" y="160" width="370" height="330" as="geometry" />
+        <mxCell id="veterinarian" value="Veterinarian / Ветеринар&#10;&#10;PK  id : INTEGER&#10;name : TEXT&#10;specialty : TEXT" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f0fdfa;strokeColor=#0f766e;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="420" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="category-product" value="1 : 0..N" edge="1" parent="1" source="category" target="product" style="edgeStyle=orthogonalEdgeStyle;startArrow=ERone;endArrow=ERmany;html=0;fontSize=16;">
+        <mxCell id="appointment" value="Appointment / Қабылдау&#10;&#10;PK  id : INTEGER&#10;FK  pet_id : INTEGER&#10;FK  veterinarian_id : INTEGER&#10;starts_at : DATETIME&#10;reason : TEXT" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f0fdfa;strokeColor=#0f766e;fontSize=18;align=left;spacing=16;" vertex="1" parent="1">
+          <mxGeometry x="560" y="600" width="420" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="owner-pet" value="1 : 0..N" edge="1" parent="1" source="owner" target="pet" style="edgeStyle=orthogonalEdgeStyle;startArrow=ERone;endArrow=ERmany;html=0;fontSize=16;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="supplier-product" value="1 : 0..N" edge="1" parent="1" source="supplier" target="product" style="edgeStyle=orthogonalEdgeStyle;startArrow=ERone;endArrow=ERmany;html=0;fontSize=16;">
+        <mxCell id="pet-appointment" value="1 : 0..N" edge="1" parent="1" source="pet" target="appointment" style="edgeStyle=orthogonalEdgeStyle;startArrow=ERone;endArrow=ERmany;html=0;fontSize=16;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="veterinarian-appointment" value="1 : 0..N" edge="1" parent="1" source="veterinarian" target="appointment" style="edgeStyle=orthogonalEdgeStyle;startArrow=ERone;endArrow=ERmany;html=0;fontSize=16;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>

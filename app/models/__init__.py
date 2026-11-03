@@ -1,3 +1,3 @@
-from app.models.inventory import Category, Product, Supplier
+from app.models.clinic import Appointment, Owner, Pet, Veterinarian
 
-__all__ = ["Category", "Product", "Supplier"]
+__all__ = ["Appointment", "Owner", "Pet", "Veterinarian"]

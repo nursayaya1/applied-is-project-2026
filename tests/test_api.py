@@ -23,28 +23,63 @@ def client():
     engine.dispose()
 
 
-def test_inventory_flow(client):
+def register(client):
+    owner = client.post("/api/owners", json={"name": "Айгүл", "phone": "+7 700 000 00 00"})
+    assert owner.status_code == 201
+    pet = client.post("/api/pets", json={"name": "Марғау", "species": "Мысық", "age_years": 2, "owner_id": owner.json()["id"]})
+    vet = client.post("/api/veterinarians", json={"name": "Дана", "specialty": "Жалпы практика"})
+    assert pet.status_code == vet.status_code == 201
+    return owner.json(), pet.json(), vet.json()
+
+
+def test_clinic_flow(client):
     assert client.get("/health").json() == {"status": "ok"}
-    c = client.post("/api/categories", json={"name": "Кеңсе тауарлары"})
-    s = client.post("/api/suppliers", json={"name": "Almaty Supply", "phone": "+7 700 000 00 00"})
-    assert c.status_code == s.status_code == 201
-    payload = dict(name="Дәптер", price_tiyn=35000, quantity=20,
-                   category_id=c.json()["id"], supplier_id=s.json()["id"])
-    response = client.post("/api/products", json=payload)
+    owner, pet, vet = register(client)
+    payload = dict(pet_id=pet["id"], veterinarian_id=vet["id"], starts_at="2026-11-10T10:00:00", reason="Жоспарлы тексеру")
+    response = client.post("/api/appointments", json=payload)
     assert response.status_code == 201
-    assert client.get("/api/products").json() == [response.json()]
+    assert client.get("/api/appointments").json() == [response.json()]
+    for path, record in [("owners", owner), ("pets", pet), ("veterinarians", vet)]:
+        assert client.get(f"/api/{path}").json() == [record]
+    assert client.get("/api/products").status_code == 404
 
 
-@pytest.mark.parametrize("field,value", [("quantity", -1), ("price_tiyn", -1), ("name", "")])
-def test_invalid_product(client, field, value):
-    payload = dict(name="Pen", price_tiyn=100, quantity=1, category_id=1, supplier_id=1)
+@pytest.mark.parametrize("field,value", [("age_years", -1), ("age_years", 101), ("name", "   "), ("species", "")])
+def test_invalid_pet(client, field, value):
+    payload = dict(name="Марғау", species="Мысық", age_years=2, owner_id=1)
     payload[field] = value
-    assert client.post("/api/products", json=payload).status_code == 422
+    assert client.post("/api/pets", json=payload).status_code == 422
 
 
 def test_missing_references(client):
-    payload = dict(name="Pen", price_tiyn=100, quantity=1, category_id=999, supplier_id=999)
-    assert client.post("/api/products", json=payload).status_code == 404
-    category = client.post("/api/categories", json={"name": "Office"}).json()
-    payload["category_id"] = category["id"]
-    assert client.post("/api/products", json=payload).status_code == 404
+    assert client.post("/api/pets", json=dict(name="Cat", species="Cat", age_years=0, owner_id=999)).status_code == 404
+    payload = dict(pet_id=999, veterinarian_id=999, starts_at="2026-11-10T10:00:00", reason="Exam")
+    assert client.post("/api/appointments", json=payload).status_code == 404
+    _, pet, _ = register(client)
+    payload["pet_id"] = pet["id"]
+    assert client.post("/api/appointments", json=payload).status_code == 404
+
+
+def test_duplicate_booking(client):
+    owner, pet, vet = register(client)
+    payload = dict(pet_id=pet["id"], veterinarian_id=vet["id"], starts_at="2026-11-10T10:00:00", reason="Exam")
+    assert client.post("/api/appointments", json=payload).status_code == 201
+    second_pet = client.post("/api/pets", json=dict(name="Ақтөс", species="Ит", age_years=3, owner_id=owner["id"])).json()
+    assert client.post("/api/appointments", json={**payload, "pet_id": second_pet["id"]}).status_code == 409
+    second_vet = client.post("/api/veterinarians", json=dict(name="Ерлан", specialty="Хирург" )).json()
+    assert client.post("/api/appointments", json={**payload, "veterinarian_id": second_vet["id"]}).status_code == 409
+    assert client.post("/api/appointments", json={**payload, "starts_at": "2026-11-10T11:00:00"}).status_code == 201
+    assert len(client.get("/api/appointments").json()) == 2
+
+
+@pytest.mark.parametrize("value", ["not-a-date", "2026-11-10T10:00:00+05:00", "2026-11-10T10:00:01"])
+def test_invalid_appointment_time(client, value):
+    payload = dict(pet_id=1, veterinarian_id=1, starts_at=value, reason="Exam")
+    assert client.post("/api/appointments", json=payload).status_code == 422
+
+
+def test_required_fields(client):
+    assert client.post("/api/owners", json={"name": "Айгүл", "phone": " "}).status_code == 422
+    assert client.post("/api/veterinarians", json={"name": "Дана", "specialty": ""}).status_code == 422
+    payload = dict(pet_id=1, veterinarian_id=1, starts_at="2026-11-10T10:00:00", reason=" ")
+    assert client.post("/api/appointments", json=payload).status_code == 422

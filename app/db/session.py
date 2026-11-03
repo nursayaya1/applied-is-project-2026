@@ -3,9 +3,9 @@ from pathlib import Path
 from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.models import Category, Product, Supplier  # Registers all tables.
+from app.models import Appointment, Owner, Pet, Veterinarian  # Registers all tables.
 
-DB_PATH = Path(__file__).resolve().parents[2] / "warehouse.db"
+DB_PATH = Path(__file__).resolve().parents[2] / "vet_clinic.db"
 engine = create_engine(
     f"sqlite:///{DB_PATH.as_posix()}", connect_args={"check_same_thread": False}
 )

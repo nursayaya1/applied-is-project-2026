@@ -1,1 +1,1 @@
-"""Warehouse information system."""
+"""Veterinary clinic information system."""
