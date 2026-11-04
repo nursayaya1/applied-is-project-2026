@@ -12,8 +12,13 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Veterinary Clinic IS", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="Veterinary Clinic IS", version="0.3.0", lifespan=lifespan)
 app.include_router(router)
+
+
+@app.get("/")
+def root():
+    return {"status": "ok", "system": "Veterinary Clinic IS", "docs": "/docs"}
 
 
 @app.get("/health")

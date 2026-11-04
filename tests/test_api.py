@@ -41,7 +41,19 @@ def test_clinic_flow(client):
     assert client.get("/api/appointments").json() == [response.json()]
     for path, record in [("owners", owner), ("pets", pet), ("veterinarians", vet)]:
         assert client.get(f"/api/{path}").json() == [record]
+        assert client.get(f"/api/{path}/{record['id']}").json() == record
+    assert client.get(f"/api/appointments/{response.json()['id']}").json() == response.json()
     assert client.get("/api/products").status_code == 404
+
+
+@pytest.mark.parametrize("path", ["owners", "pets", "veterinarians", "appointments"])
+def test_get_missing_id(client, path):
+    assert client.get(f"/api/{path}/99999").status_code == 404
+
+
+def test_root_and_client_id_rejection(client):
+    assert client.get("/").json()["status"] == "ok"
+    assert client.post("/api/owners", json={"id": 500, "name": "Test", "phone": "DEMO"}).status_code == 422
 
 
 @pytest.mark.parametrize("field,value", [("age_years", -1), ("age_years", 101), ("name", "   "), ("species", "")])

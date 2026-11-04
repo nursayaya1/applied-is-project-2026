@@ -1,11 +1,12 @@
 """Veterinary clinic database tables and validated request schemas."""
 from datetime import datetime
-from pydantic import field_validator
+from pydantic import ConfigDict, field_validator
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
 class InputModel(SQLModel):
+    model_config = ConfigDict(extra="forbid")
     @field_validator("*", mode="before")
     @classmethod
     def trim_strings(cls, value):
