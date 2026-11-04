@@ -8,7 +8,7 @@ import streamlit as st
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000").rstrip("/")
 st.set_page_config(page_title="Ветеринарлық клиника", page_icon="🐾", layout="wide")
 st.title("🐾 Ветеринарлық клиника")
-st.caption("Қабылдауларды есепке алу ақпараттық жүйесі · Зертханалық жұмыс №1")
+st.caption("Қабылдауларды есепке алу ақпараттық жүйесі · Зертханалық жұмыстар №1–4")
 
 
 def api(method, path, **kwargs):

@@ -16,6 +16,7 @@ engine = create_engine(
 @event.listens_for(engine, "connect")
 def enable_foreign_keys(connection, _):
     connection.execute("PRAGMA foreign_keys=ON")
+    connection.create_function("casefold", 1, lambda value: value.casefold() if value else "", deterministic=True)
 
 
 def init_db(db_engine=engine):

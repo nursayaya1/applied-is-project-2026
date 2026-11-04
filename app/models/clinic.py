@@ -1,6 +1,6 @@
 """Veterinary clinic database tables and validated request schemas."""
 from datetime import datetime
-from pydantic import ConfigDict, field_validator
+from pydantic import ConfigDict, field_validator, model_validator
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -78,3 +78,36 @@ class Appointment(AppointmentCreate, table=True):
     id: int | None = Field(default=None, primary_key=True)
     pet: Pet = Relationship(back_populates="appointments")
     veterinarian: Veterinarian = Relationship(back_populates="appointments")
+
+
+class UpdateInputModel(InputModel):
+    @model_validator(mode="before")
+    @classmethod
+    def reject_explicit_null(cls, value):
+        if isinstance(value, dict) and any(item is None for item in value.values()):
+            raise ValueError("Fields may be omitted but cannot be null")
+        return value
+
+
+class OwnerUpdate(UpdateInputModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    phone: str | None = Field(default=None, min_length=1, max_length=30)
+
+
+class PetUpdate(UpdateInputModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    species: str | None = Field(default=None, min_length=1, max_length=60)
+    age_years: int | None = Field(default=None, ge=0, le=100)
+    owner_id: int | None = Field(default=None, gt=0)
+
+
+class VeterinarianUpdate(UpdateInputModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    specialty: str | None = Field(default=None, min_length=1, max_length=100)
+
+
+class AppointmentUpdate(UpdateInputModel):
+    pet_id: int | None = Field(default=None, gt=0)
+    veterinarian_id: int | None = Field(default=None, gt=0)
+    starts_at: datetime | None = None
+    reason: str | None = Field(default=None, min_length=1, max_length=500)
