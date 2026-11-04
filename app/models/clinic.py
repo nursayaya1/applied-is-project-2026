@@ -2,7 +2,7 @@
 from datetime import datetime
 from pydantic import field_validator
 from sqlalchemy import DateTime, UniqueConstraint
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class InputModel(SQLModel):
@@ -19,6 +19,7 @@ class OwnerCreate(InputModel):
 
 class Owner(OwnerCreate, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    pets: list["Pet"] = Relationship(back_populates="owner", passive_deletes="all")
 
 
 class PetCreate(InputModel):
@@ -30,6 +31,12 @@ class PetCreate(InputModel):
 
 class Pet(PetCreate, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    owner: Owner = Relationship(back_populates="pets")
+    appointments: list["Appointment"] = Relationship(back_populates="pet", passive_deletes="all")
+    veterinarians: list["Veterinarian"] = Relationship(
+        back_populates="patients",
+        sa_relationship_kwargs={"secondary": "appointment", "viewonly": True},
+    )
 
 
 class VeterinarianCreate(InputModel):
@@ -39,6 +46,11 @@ class VeterinarianCreate(InputModel):
 
 class Veterinarian(VeterinarianCreate, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    appointments: list["Appointment"] = Relationship(back_populates="veterinarian", passive_deletes="all")
+    patients: list[Pet] = Relationship(
+        back_populates="veterinarians",
+        sa_relationship_kwargs={"secondary": "appointment", "viewonly": True},
+    )
 
 
 class AppointmentCreate(InputModel):
@@ -63,3 +75,5 @@ class Appointment(AppointmentCreate, table=True):
         UniqueConstraint("pet_id", "starts_at"),
     )
     id: int | None = Field(default=None, primary_key=True)
+    pet: Pet = Relationship(back_populates="appointments")
+    veterinarian: Veterinarian = Relationship(back_populates="appointments")
