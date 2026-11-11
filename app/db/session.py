@@ -6,7 +6,8 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app.models import Appointment, Owner, Pet, Veterinarian  # Registers all tables.
 
-DB_PATH = Path(__file__).resolve().parents[2] / "vet_clinic.db"
+DB_PATH = Path(os.getenv("DATABASE_PATH", str(Path(__file__).resolve().parents[2] / "vet_clinic.db"))).resolve()
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 engine = create_engine(
     f"sqlite:///{DB_PATH.as_posix()}", connect_args={"check_same_thread": False},
     echo=os.getenv("SQL_ECHO", "0") == "1",
