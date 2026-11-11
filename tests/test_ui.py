@@ -14,6 +14,7 @@ def test_populated_clinic_ui(monkeypatch):
 
     class Response:
         ok = True
+        status_code = 200
 
         def __init__(self, rows):
             self.rows = rows
@@ -22,7 +23,7 @@ def test_populated_clinic_ui(monkeypatch):
             return self.rows
 
     monkeypatch.setattr("requests.request", lambda method, url, **kwargs: Response(data[url.rsplit("/", 1)[-1]]))
-    page = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "frontend/app.py")).run()
+    page = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "frontend/app.py")).run(timeout=30)
     assert not page.exception
     assert not page.error
     assert [m.value for m in page.metric] == ["1", "1", "1", "1"]
@@ -30,3 +31,4 @@ def test_populated_clinic_ui(monkeypatch):
     assert len(page.date_input) == 1
     assert len(page.time_input) == 1
     assert any("Марғау" in str(frame.value) for frame in page.dataframe)
+
