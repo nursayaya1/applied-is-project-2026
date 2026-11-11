@@ -1,152 +1,128 @@
-# Ветеринарлық клиникадағы қабылдауларды есепке алу
+# Информационная система: Ветеринарлық клиника
 
-Зертханалық жұмыстар №1–4. Python тілінде жасалған ветеринарлық клиниканың ақпараттық жүйесі. Жоба жануар иелерін, жануарларды, ветеринарларды тіркейді және қабылдауға жазады.
+**Курс:** Прикладное программное обеспечение информационных систем (2026 г.)
 
-Репозиторий: [nursayaya1/applied-is-project-2026](https://github.com/nursayaya1/applied-is-project-2026).
+**Автор:** ИС 24 А1 тобының студенті — Жұматай Нұрсая
 
-## Зертханалық жұмыстар
+## 1. Описание предметной области
 
-- [№2 — ORM, Relationship және seed](docs/LAB_02_KK.md)
-- [№3 — FastAPI, GET, POST және Swagger](docs/LAB_03_KK.md)
-- [№4 — PATCH, DELETE және сүзу](docs/LAB_04_KK.md)
+Жүйе ветеринарлық клиникадағы қабылдауларды есепке алуға арналған. Оны клиника әкімшісі жануар иелерін, жануарларды және ветеринарларды тіркеуге қолданады. Әкімші жануарды нақты дәрігерге күнін, уақытын және келу себебін көрсетіп жазады. Жүйе мәліметтерді іздеуді, сүзуді, қосуды, өзгертуді және жоюды автоматтандырады. Бір дәрігерді немесе жануарды дәл бір уақытқа қайталап жазуға жол бермейді.
 
-Деректерді дайындау: `.\venv\Scripts\python.exe seed.py`. Құрылымды тексеру: `.\venv\Scripts\python.exe -m scripts.inspect_db`. Seed бос базаға 3 ие, 3 жануар, 3 ветеринар және 4 қабылдау қосады; қайта орындағанда оларды көбейтпейді.
+## 2. Архитектура данных (ER-диаграмма)
 
-## Мүмкіндіктері
+![Дерекқор схемасы](docs/er-diagram.png)
 
-- API арқылы төрт нысанды ID бойынша табу, ішінара өзгерту және қауіпсіз жою.
-- Аты, түрі, мамандануы, жасы және қабылдау уақыты бойынша сүзу.
-- Иесін аты-жөні және телефонымен тіркеу.
-- Жануардың атын, түрін, толық жасын және иесін сақтау.
-- Ветеринардың аты-жөні мен мамандануын сақтау.
-- Жануарды ветеринарға күнін, уақытын, келу себебін көрсетіп жазу.
-- Қабылдауларды уақыт ретімен көру және төрт бөлімдегі жазба санын есептеу.
-- Бір ветеринарды немесе бір жануарды дәл бір уақытқа қайта жазуды бұғаттау (HTTP 409).
-
-## ER-диаграмма
-
-![Ветеринарлық клиниканың ER-диаграммасы](docs/er-diagram.png)
-
-| Байланыс | Мағынасы |
+| Кесте | Мазмұны және байланысы |
 |---|---|
-| Owner → Pet | Бір иеде нөл немесе бірнеше жануар болады; әр жануардың бір иесі бар. |
-| Pet → Appointment | Бір жануардың нөл немесе бірнеше қабылдауы болады. |
-| Veterinarian → Appointment | Бір ветеринар нөл немесе бірнеше қабылдау өткізеді. |
+| Owner | Иесінің аты мен телефоны. Owner → Pet: бірден көпке. |
+| Pet | Жануар аты, түрі, жасы, owner_id. Pet → Appointment: бірден көпке. |
+| Veterinarian | Ветеринар аты және мамандануы. Veterinarian → Appointment: бірден көпке. |
+| Appointment | pet_id, veterinarian_id, басталу уақыты, келу себебі. |
 
-Әр қабылдау бір жануарға және бір ветеринарға байланысты. Pet пен Veterinarian арасында Appointment арқылы көптен көпке байланыс бар; ORM-де ол тек оқуға арналған veterinarians/patients тізімдерімен көрсетіледі. `id` — бастапқы кілт (PK). `owner_id`, `pet_id`, `veterinarian_id` — сыртқы кілттер (FK).
+Pet ↔ Veterinarian көптен көпке байланысы Appointment арқылы жасалған; ORM-де оны тек оқуға арналған veterinarians/patients байланыстары көрсетеді. id — PK; owner_id, pet_id, veterinarian_id — FK.
 
-[Өңделетін draw.io файлы](docs/er-diagram.drawio): [draw.io](https://app.diagrams.net/) → **File → Open from → Device**. PNG экспорттау: **File → Export as → PNG**.
+[Өңделетін draw.io схемасы](docs/er-diagram.drawio).
 
-## Архитектура және құрылым
+## 3. Технологический стек
 
-Пайдаланушы → Streamlit → HTTP → FastAPI → SQLModel → SQLite.
+- **Backend:** Python 3.12 (3.11+), FastAPI, Uvicorn.
+- **Database / ORM:** SQLite, SQLModel / SQLAlchemy.
+- **Frontend UI:** Streamlit, Requests.
+- **DevOps / Инфраструктура:** Docker, Docker Compose, Git / GitHub.
+- **Тесттер:** pytest, FastAPI TestClient / httpx, Streamlit AppTest.
+- **AI-tools:** Codex — кодты дайындау, тексеру және түсіндіруге көмек.
+
+Архитектура: браузер → Streamlit → HTTP API → FastAPI → SQLModel → SQLite. Интерфейс базаға тікелей қосылмайды.
 
 ```text
 app/
-  main.py                 # FastAPI қолданбасы, іске қосу, /health
-  api/routes.py           # Төрт нысанға GET және POST маршруттары
-  models/clinic.py        # ORM, Relationship, Create және Update схемалары
-  db/session.py           # SQLite, init_db және get_session
-  db/seed.py              # Қайталанбайтын демо деректер
-frontend/app.py           # Қазақша Streamlit интерфейсі
-docs/
-  er-diagram.png          # ER-диаграмма
-  er-diagram.drawio       # Өңделетін сызба
-  GUIDE_KK.md             # Толық қазақша түсіндірме
-scripts/
-  create_diagram.py       # PNG және draw.io сызбасын жасау
-  smoke_check.py          # API және UI іске қосылуын тексеру
-seed.py                  # SQL логтарымен seed іске қосу
-tests/                   # API, ORM, seed және интерфейс тесттері
-.vscode/                 # Python ортасының баптаулары
-.gitignore               # Git-ке кірмейтін файлдар
-requirements.txt         # Негізгі кітапханалар
-requirements-dev.txt     # Тест кітапханалары
-requirements-lock.txt    # Тексерілген нақты нұсқалар
+  main.py                  # FastAPI, lifespan, /health
+  api/routes.py            # GET, POST, PATCH, DELETE және сүзу
+  models/clinic.py         # ORM, Relationship, Create/Update схемалары
+  db/session.py            # engine, init_db, get_session
+  db/seed.py               # Қайталанбайтын бастапқы деректер
+frontend/app.py            # Streamlit формалары, іздеу, жою
+tests/                    # API, база және интерфейс тесттері
+scripts/                  # Базаны тексеру және іске қосу сынағы
+docs/                     # ER-схема және зертхана нұсқаулықтары
+seed.py                   # Бастапқы деректерді қосу
+Dockerfile                # Backend image
+Dockerfile.frontend       # Frontend image
+docker-compose.yml        # Сервистер, желі, healthcheck, volume
+.dockerignore             # Build context ерекшеліктері
+requirements.txt          # Жергілікті орта және тест кітапханалары
+requirements-backend.txt  # Backend контейнерінің кітапханалары
+requirements-frontend.txt # Frontend контейнерінің кітапханалары
 ```
 
-SQLite дерекқоры `vet_clinic.db` файлына жазылады және сервер алғаш іске қосылғанда жасалады. Әр қабылдаудың уақыты Asia/Qyzylorda жергілікті уақыты ретінде, минут дәлдігімен сақталады. API мысалы: `2026-11-10T10:00:00` (уақыт белдеуінің жұрнағынсыз).
+Әдістемедегі database/, routers/, app/frontend/ міндеттері тиісінше app/db/ + app/models/, app/api/, frontend/ модульдеріне бөлінген.
 
-## Іске қосу
+## 4. Инструкция по локальному развертыванию
 
-Осы компьютерде `venv` және кітапханалар дайын. VS Code-та жоба папкасын ашыңыз. Бұрынғы серверлер ашық болса, әр терминалда **Ctrl+C** басып тоқтатып, қайта қосыңыз.
+### Docker арқылы
 
-Бірінші PowerShell терминалы:
+Docker Desktop орнатылып, Linux engine іске қосылуы керек. Windows-та WSL 2 қажет. `docker version` Client және Server нұсқаларын көрсетуі тиіс. Бұл режимде host компьютерге Python немесе SQLite бөлек орнату қажет емес.
 
 ```powershell
+git clone https://github.com/nursayaya1/applied-is-project-2026.git
+cd applied-is-project-2026
+docker compose config
+docker compose up --build -d
+docker compose ps
+docker compose exec backend python seed.py
+```
+
+- Интерфейс: [localhost:8501](http://localhost:8501).
+- Swagger: [localhost:8000/docs](http://localhost:8000/docs).
+- Күйі: [localhost:8000/health](http://localhost:8000/health).
+
+Егер 8000/8501 порттарында жергілікті серверлер жұмыс істесе, олардың терминалдарында Ctrl+C басыңыз. Frontend BACKEND_URL=http://backend:8000 арқылы backend-ке қосылады және backend дайын болғанша күтеді.
+
+SQLite /data/vet_clinic.db файлы clinic_data volume-ында сақталады. `docker compose down` және қайта `docker compose up -d` орындағанда деректер қалады. `down -v` қолданбаңыз: ол volume деректерін жояды. Жергілікті Python базасы мен контейнер базасы бөлек.
+
+### Python арқылы (Docker қажет емес)
+
+Windows PowerShell, жоба папкасында:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
+.\venv\Scripts\python.exe seed.py
 .\venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-Екінші PowerShell терминалы:
+Бірінші терминалды ашық қалдырып, екінші терминалда:
 
 ```powershell
 .\venv\Scripts\python.exe -m streamlit run frontend/app.py
 ```
 
-- Интерфейс: http://localhost:8501
-- Swagger: http://127.0.0.1:8000/docs
-- Сервер күйі: http://127.0.0.1:8000/health
+Mac/Linux-та venv/bin/python қолданыңыз. Seed бос базаға 3 ие, 3 жануар, 3 ветеринар, 4 қабылдау қосады; қайта орындағанда көбейтпейді. База, виртуалды орта және құпия файлдар Git-ке жіберілмейді.
 
-Жаңа компьютерге орнату (Python 3.12 ұсынылады):
+## 5. Запуск тестов
 
 ```powershell
-git clone https://github.com/nursayaya1/applied-is-project-2026.git
-cd applied-is-project-2026
-python -m venv venv
 .\venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-Нақты тексерілген нұсқалар үшін `requirements-lock.txt` қолдануға болады. Виртуалды ортаны белсендіру міндетті емес: командалар оның Python-ын тікелей шақырады. Қажет болса, активация: `.\venv\Scripts\Activate.ps1`.
-
-## Демо сценарий
-
-1. **Иелері:** Айгүл, телефон: `+7 700 000 00 00` (оқу мысалы).
-2. **Жануарлар:** Марғау, Мысық, 2 жас, иесі — Айгүл.
-3. **Ветеринарлар:** Дана, мамандануы — Жалпы практика.
-4. **Қабылдаулар:** Марғау → Дана, күн мен уақытты таңдаңыз, келу себебі — Жоспарлы тексеру.
-5. Қабылдау тізімге түседі; алғаш енгізгенде төрт көрсеткіштің әрқайсысы 1 болады.
-
-## API
-
-| Әдіс | Мекенжай | Қызметі |
-|---|---|---|
-| GET | `/health` | Сервер күйі |
-| GET / POST | `/api/owners` | Иелер тізімі / иесін тіркеу |
-| GET / POST | `/api/pets` | Жануарлар тізімі / жануар тіркеу |
-| GET / POST | `/api/veterinarians` | Ветеринарлар тізімі / ветеринар тіркеу |
-| GET / POST | `/api/appointments` | Қабылдаулар тізімі / қабылдауға жазу |
-
-POST `/api/appointments` мысалы (ID=1 жануар мен ветеринар алдын ала тіркелуі тиіс):
-
-```json
-{"pet_id":1,"veterinarian_id":1,"starts_at":"2026-11-10T10:00:00","reason":"Жоспарлы тексеру"}
-```
-
-Төрт API үшін GET `/{record_id}`, PATCH `/{record_id}` және DELETE `/{record_id}` бар. PATCH көрсетілген өрістерді ғана жаңартады; DELETE бос 204 жауабын береді. Байланысты жазбалары бар нысанды жою — 409.
-
-Сүзгілер: `/api/pets?search=марға&min_age=1&max_age=5`, `/api/owners?search=айгүл`, `/api/veterinarians?specialty=хирургия`, `/api/appointments?starts_from=2026-11-10T00:00:00`.
-
-Қосу сәтті болса — 201; байланыстырылатын нысан жоқ болса — 404; бір уақытқа қайталап жазылса — 409; өріс қате болса — 422.
-
-## Тексеру
-
-```powershell
-.\venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\venv\Scripts\python.exe -m pytest -q
-.\venv\Scripts\python.exe scripts/smoke_check.py
+.\venv\Scripts\python.exe -m scripts.smoke_check
 ```
 
-API тесттері бөлек жедел жад дерекқорын қолданады. Интерфейс тесті жасанды оқу деректерін қолданады. Smoke тексерісі негізгі дерекқорда кестелерді жасайды, бірақ жазбалар қоспайды; уақытша серверлерін өзі тоқтатады.
+Виртуалды орта белсенді болса, `pytest` жеткілікті. Тесттер оқшауланған SQLite базаларын қолданады және жұмыс жазбаларын өзгертпейді. API тесттері GET/POST/PATCH/DELETE, 404/409/422, сыртқы кілттер, уақыт қайшылығы, іздеу мен сүзуді қамтиды. AppTest интерфейстегі қосу, іздеу, жою және API қателерін тексереді. Smoke check уақытша серверлерді 18001/18501 порттарында іске қосып, тексеруден кейін тоқтатады.
 
-2026-11-04: 31 тест сәтті өтті; ORM, seed қайталануы, толық CRUD, сүзу, валидация және OpenAPI маршруттары тексерілді.
+2026-11-11: **35 passed**. TestClient тәуелділігінен бір deprecation ескертуі бар; тесттер сәтті аяқталады. Docker тексеруінің күйі [№6 нұсқаулығында](docs/LAB_06_KK.md) көрсетіледі.
 
-## Оқу жобасының шекарасы
+## 6. Зертханалар және қорғау
 
-Бұл №1–4 зертханаларға арналған оқу жүйесі. API-де толық CRUD және сүзу бар. Streamlit тіркеу мен тізімдеуге арналған, қалған әрекеттер Swagger арқылы орындалады. Авторизация, емдеу картасы және төлем есебі жоқ. Қабылдау ұзақтығы сақталмайды: тек бірдей басталу уақытының қайталануы тексеріледі. Өткен күнге жазба енгізуге болады.
+| Жұмыс | Нұсқаулық |
+|---|---|
+| №1 | [Орта, Git, ER және іске қосу](docs/GUIDE_KK.md) |
+| №2 | [ORM, байланыстар, seed](docs/LAB_02_KK.md) |
+| №3 | [GET, POST, Swagger](docs/LAB_03_KK.md) |
+| №4 | [PATCH, DELETE, сүзу](docs/LAB_04_KK.md) |
+| №5 | [Streamlit интерфейсі](docs/LAB_05_KK.md) |
+| №6 | [Docker және Compose](docs/LAB_06_KK.md) |
+| №7 | [Тесттер, аудит және қорғау](docs/LAB_07_KK.md) |
 
-VS Code-та Python және GitHub Copilot ұсынылған. ИИ аккаунтына кіруді өзіңіз орындайсыз. Файлдардың мағынасы, ИИ промпті және қорғауға дайындық: [қазақша нұсқаулық](docs/GUIDE_KK.md).
+Интерфейсте төрт бөлім бар: иелер, жануарлар, ветеринарлар, қабылдаулар. Іздеу үшін мәтін енгізіп Enter басыңыз; қосу үшін форманы толтырыңыз; жою үшін «Жазбаны жою» бөлімін ашып, жазбаны таңдап, растау белгісін қойыңыз. PATCH арқылы өңдеу Swagger-де орындалады.
 
-## Құжаттар
-
-- [FastAPI және SQL дерекқорлары](https://fastapi.tiangolo.com/tutorial/sql-databases/)
-- [Streamlit іске қосу](https://docs.streamlit.io/get-started/installation/command-line)
+Шектеулер: авторизация мен рөлдер жоқ; жоба жергілікті оқу/демонстрацияға арналған. Қабылдау ұзақтығы есептелмейді, тек басталу уақытының дәл қайталануы тексеріледі. Коммиттер нақты жасалған уақытын көрсетеді; жеті аптаға жасанды тарих жасалмайды.

@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import tempfile
 
 import requests
 from streamlit.testing.v1 import AppTest
@@ -27,6 +28,9 @@ def wait_for(url, process):
 
 if __name__ == "__main__":
     processes = []
+    temporary = tempfile.TemporaryDirectory(prefix="clinic-smoke-")
+    os.environ["DATABASE_PATH"] = str(Path(temporary.name) / "clinic.db")
+    os.environ["BACKEND_URL"] = "http://127.0.0.1:18001"
     try:
         api = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", "18001"], cwd=ROOT)
         processes.append(api)
@@ -46,10 +50,15 @@ if __name__ == "__main__":
         print("PASS: API startup, Swagger docs, Streamlit render and server health")
     finally:
         for process in processes:
-            process.terminate()
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            else:
+                process.terminate()
         for process in processes:
             try:
                 process.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
+        temporary.cleanup()
