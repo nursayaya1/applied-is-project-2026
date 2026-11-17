@@ -7,13 +7,20 @@ import pytest
 UI_PATH = str(Path(__file__).resolve().parents[1] / "frontend/app.py")
 
 
+def signed_page(token="unit-test-token"):
+    page = AppTest.from_file(UI_PATH, default_timeout=30)
+    page.session_state["access_token"] = token
+    page.session_state["user"] = {"username": "test_admin", "role": "admin"}
+    return page
+
+
 @pytest.fixture
 def connected_ui(client, monkeypatch):
     calls = []
 
     def request(method, url, **kwargs):
         path = "/api/" + url.split("/api/", 1)[1]
-        response = client.request(method, path, params=kwargs.get("params"), json=kwargs.get("json"))
+        response = client.request(method, path, params=kwargs.get("params"), json=kwargs.get("json"), headers=kwargs.get("headers"))
         calls.append((method, path, kwargs))
         result = requests.Response()
         result.status_code = response.status_code
@@ -21,7 +28,7 @@ def connected_ui(client, monkeypatch):
         return result
 
     monkeypatch.setattr("requests.request", request)
-    return AppTest.from_file(UI_PATH, default_timeout=30), calls
+    return signed_page(client.headers["Authorization"].split()[1]), calls
 
 
 def element(elements, label):
@@ -61,7 +68,7 @@ def test_ui_disconnected_backend(monkeypatch):
     def unavailable(*args, **kwargs):
         raise requests.ConnectionError("offline")
     monkeypatch.setattr("requests.request", unavailable)
-    page = AppTest.from_file(UI_PATH, default_timeout=30).run()
+    page = signed_page().run()
     assert len(page.error) == 1 and not page.exception
 
 
@@ -70,7 +77,7 @@ def test_ui_non_json_backend_error(monkeypatch):
     response.status_code = 502
     response._content = b"<html>Bad gateway</html>"
     monkeypatch.setattr("requests.request", lambda *args, **kwargs: response)
-    page = AppTest.from_file(UI_PATH, default_timeout=30).run()
+    page = signed_page().run()
     assert len(page.error) == 1 and not page.exception
 
 
@@ -94,7 +101,7 @@ def test_populated_clinic_ui(monkeypatch):
             return self.rows
 
     monkeypatch.setattr("requests.request", lambda method, url, **kwargs: Response(data[url.rsplit("/", 1)[-1]]))
-    page = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "frontend/app.py")).run(timeout=30)
+    page = signed_page().run(timeout=30)
     assert not page.exception
     assert not page.error
     assert [m.value for m in page.metric] == ["1", "1", "1", "1"]
@@ -102,4 +109,38 @@ def test_populated_clinic_ui(monkeypatch):
     assert len(page.date_input) == 1
     assert len(page.time_input) == 1
     assert any("Марғау" in str(frame.value) for frame in page.dataframe)
+
+
+def test_ui_login_and_logout(connected_ui, credentials):
+    page, calls = connected_ui
+    del page.session_state["access_token"]
+    del page.session_state["user"]
+    page.run()
+    assert not page.tabs
+    page.text_input(key="login_username").input(credentials["username"])
+    page.text_input(key="login_password").input(credentials["password"])
+    element(page.button, "Кіру").click().run()
+    assert len(page.tabs) == 4 and not page.exception
+    page.button(key="logout").click().run()
+    assert not page.tabs and not page.exception
+    assert page.text_input(key="login_password").value == ""
+
+
+def test_ui_viewer_cannot_edit(connected_ui):
+    page, _ = connected_ui
+    page.session_state["user"] = {"username": "viewer", "role": "viewer"}
+    page.run()
+    assert element(page.button, "Иесін қосу").disabled
+    assert not any(button.key == "delete_owners" for button in page.button)
+
+
+def test_ui_invalid_login(connected_ui):
+    page, _ = connected_ui
+    del page.session_state["access_token"]
+    del page.session_state["user"]
+    page.run()
+    page.text_input(key="login_username").input("missing")
+    page.text_input(key="login_password").input("incorrect")
+    element(page.button, "Кіру").click().run()
+    assert page.error and not page.exception and not page.tabs
 

@@ -1,64 +1,42 @@
-"""Check actual API startup and Streamlit rendering, then stop both servers."""
+"""Check authenticated API + UI against an isolated seeded database."""
 import os
-from pathlib import Path
 import subprocess
 import sys
-import time
-import tempfile
-
 import requests
 from streamlit.testing.v1 import AppTest
+from scripts.test_server import ROOT, test_server, stop_process
 
-ROOT = Path(__file__).resolve().parents[1]
 
-
-def wait_for(url, process):
-    for _ in range(100):
-        if process.poll() is not None:
-            raise RuntimeError(f"Server exited with {process.returncode}")
+def main():
+    with test_server(18001) as (url, token, api):
+        assert requests.get(url + "/docs", timeout=5).status_code == 200
+        page = AppTest.from_file(str(ROOT / "frontend/app.py"), default_timeout=30)
+        os.environ["BACKEND_URL"] = url
+        page.session_state["access_token"] = token
+        page.session_state["user"] = {"username": "load_admin", "role": "admin"}
+        page.run()
+        assert not page.exception and not page.error
+        assert len(page.tabs) == 4 and len(page.metric) == 4
+        ui = subprocess.Popen([sys.executable, "-m", "streamlit", "run", "frontend/app.py",
+                               "--server.port", "18501", "--server.address", "127.0.0.1",
+                               "--server.headless", "true", "--browser.gatherUsageStats", "false"], cwd=ROOT)
         try:
-            response = requests.get(url, timeout=1)
-            if response.status_code == 200:
-                return response
-        except requests.RequestException:
-            pass
-        time.sleep(0.2)
-    raise RuntimeError(f"Server did not become ready: {url}")
+            import time
+            for _ in range(100):
+                if ui.poll() is not None:
+                    raise RuntimeError("Streamlit exited")
+                try:
+                    if requests.get("http://127.0.0.1:18501/_stcore/health", timeout=1).status_code == 200:
+                        break
+                except requests.RequestException:
+                    pass
+                time.sleep(.2)
+            else:
+                raise RuntimeError("Streamlit startup timed out")
+            print("PASS: authenticated API, Swagger, UI rendering and Streamlit health")
+        finally:
+            stop_process(ui)
 
 
 if __name__ == "__main__":
-    processes = []
-    temporary = tempfile.TemporaryDirectory(prefix="clinic-smoke-")
-    os.environ["DATABASE_PATH"] = str(Path(temporary.name) / "clinic.db")
-    os.environ["BACKEND_URL"] = "http://127.0.0.1:18001"
-    try:
-        api = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", "18001"], cwd=ROOT)
-        processes.append(api)
-        assert wait_for("http://127.0.0.1:18001/health", api).json() == {"status": "ok"}
-        assert requests.get("http://127.0.0.1:18001/docs", timeout=5).status_code == 200
-        os.environ["API_URL"] = "http://127.0.0.1:18001"
-        page = AppTest.from_file(str(ROOT / "frontend/app.py")).run(timeout=30)
-        assert not page.exception, page.exception
-        assert not page.error, page.error
-        assert len(page.tabs) == 4
-        assert len(page.metric) == 4
-        ui = subprocess.Popen([sys.executable, "-m", "streamlit", "run", "frontend/app.py",
-                               "--server.port", "18501", "--server.address", "127.0.0.1", "--server.headless", "true",
-                               "--browser.gatherUsageStats", "false"], cwd=ROOT)
-        processes.append(ui)
-        assert wait_for("http://127.0.0.1:18501/_stcore/health", ui).text == "ok"
-        print("PASS: API startup, Swagger docs, Streamlit render and server health")
-    finally:
-        for process in processes:
-            if os.name == "nt":
-                subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-            else:
-                process.terminate()
-        for process in processes:
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
-        temporary.cleanup()
+    main()

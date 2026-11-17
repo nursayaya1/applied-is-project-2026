@@ -11,6 +11,7 @@ venv
 .coverage
 htmlcov
 .tmp
+.local
 .uv-cache
 .env
 .env.*

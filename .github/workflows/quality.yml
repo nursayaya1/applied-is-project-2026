@@ -1,0 +1,74 @@
+name: Clinic quality
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      demonstrate_failure:
+        description: "Lab 8: deliberately fail one isolated test (does not edit application code)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: 'requirements*.txt'
+      - name: Install dependencies
+        run: python -m pip install -r requirements-quality.txt
+      - name: Automated integration and security tests
+        run: python -m pytest -v --junitxml=docs/reports/lab08/pytest-ci.xml
+      - name: Static security analysis
+        run: python -m bandit -r app frontend -f json -o docs/reports/lab08/bandit-ci.json
+      - name: Real HTTP integration
+        run: python -m scripts.run_http_checks
+      - name: Short load regression (full measurements are in the report)
+        run: python -m scripts.run_load_tests --quick --output docs/reports/lab08/load-ci
+      - name: Intentional isolated failure exercise
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.demonstrate_failure }}
+        run: |
+          mkdir -p .tmp
+          printf 'def test_intentional_lab_failure():\n    assert 200 == 201\n' > .tmp/test_failure_demo.py
+          python -m pytest .tmp/test_failure_demo.py -v
+      - name: Save quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: docs/reports/lab08/
+          retention-days: 14
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install requests
+      - name: Build and start both services
+        run: docker compose up --build --wait --wait-timeout 180
+      - name: Create disposable CI administrator
+        run: |
+          QUALITY_PASSWORD=$(python -c 'import secrets; print(secrets.token_urlsafe(24) + "aA1!")')
+          echo "::add-mask::$QUALITY_PASSWORD"
+          echo "QUALITY_PASSWORD=$QUALITY_PASSWORD" >> "$GITHUB_ENV"
+          docker compose exec -T -e QUALITY_PASSWORD="$QUALITY_PASSWORD" backend python -c "import os; from sqlmodel import Session; from app.db.session import engine; from app.security import create_account; s=Session(engine); create_account(s, 'ci_admin', os.environ['QUALITY_PASSWORD'], 'admin'); s.close()"
+      - name: Verify deployed application
+        run: python -m scripts.check_docker
+      - name: Container status
+        if: always()
+        run: docker compose ps
+      - name: Stop disposable containers
+        if: always()
+        run: docker compose down

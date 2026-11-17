@@ -13,9 +13,17 @@ st.caption("Қабылдауларды есепке алу")
 
 def api(method, path, **kwargs):
     try:
+        if st.session_state.get("access_token"):
+            kwargs["headers"] = {"Authorization": f"Bearer {st.session_state['access_token']}"}
         response = requests.request(method, f"{API_URL}/api/{path}", timeout=10, **kwargs)
         if not response.ok:
-            if response.status_code == 409:
+            if response.status_code == 401:
+                st.session_state.pop("access_token", None)
+                st.session_state.pop("user", None)
+                message = "Кіру деректерін тексеріңіз немесе сессияны жаңартып қайта кіріңіз."
+            elif response.status_code == 403:
+                message = "Бұл әрекетке әкімші рөлі қажет."
+            elif response.status_code == 409:
                 message = "Бұл уақыт бос емес немесе жазба басқа мәліметтермен байланысты."
             elif response.status_code == 404:
                 message = "Жазба табылмады. Тізімді жаңартыңыз."
@@ -53,7 +61,7 @@ def filtered(path, original, **params):
 
 
 def delete_panel(path, rows, labels):
-    if not rows:
+    if not rows or st.session_state.get("user", {}).get("role") != "admin":
         return
     with st.expander("Жазбаны жою"):
         selected = st.selectbox("Жойылатын жазба", [row["id"] for row in rows],
@@ -66,11 +74,31 @@ def delete_panel(path, rows, labels):
                 st.rerun()
 
 
+if not st.session_state.get("access_token"):
+    st.subheader("Жүйеге кіру")
+    with st.form("login", clear_on_submit=True):
+        username = st.text_input("Логин", key="login_username", max_chars=64)
+        password = st.text_input("Құпиясөз", type="password", key="login_password", max_chars=256)
+        if st.form_submit_button("Кіру"):
+            result = api("POST", "auth/login", json={"username": username, "password": password})
+            if result is not None:
+                st.session_state["access_token"] = result["access_token"]
+                st.session_state["user"] = result["user"]
+                st.rerun()
+    st.stop()
+
+can_edit = st.session_state.get("user", {}).get("role") == "admin"
 with st.sidebar:
     st.header("Клиника")
     st.write("Жануарларды тіркеу және қабылдауларды басқару")
     st.caption("Жұмыс реті: иесі → жануар → ветеринар → қабылдау.")
     st.button("Тізімді жаңарту", key="refresh")
+    st.write(st.session_state.get("user", {}).get("username", ""))
+    st.caption("Әкімші" if can_edit else "Тек оқу құқығы")
+    if st.button("Шығу", key="logout"):
+        if api("POST", "auth/logout") is not None:
+            st.session_state.clear()
+            st.rerun()
 
 if "notice" in st.session_state:
     st.success(st.session_state.pop("notice"))
@@ -97,7 +125,7 @@ with tab_owners:
     with st.form("owner"):
         name = st.text_input("Иесінің аты-жөні", max_chars=100)
         phone = st.text_input("Телефон нөмірі", max_chars=30)
-        if st.form_submit_button("Иесін қосу"):
+        if st.form_submit_button("Иесін қосу", disabled=not can_edit):
             submit("owners", dict(name=name.strip(), phone=phone.strip()))
     st.dataframe([{"ID": o["id"], "Аты-жөні": o["name"], "Телефон": o["phone"]} for o in shown_owners], width="stretch")
     delete_panel("owners", shown_owners, owner_names)
@@ -116,7 +144,7 @@ with tab_pets:
             species = st.selectbox("Жануардың түрі", ["Мысық", "Ит", "Құс", "Қоян", "Басқа"])
             age = st.number_input("Толық жасы (жыл)", min_value=0, max_value=100, step=1)
             owner_id = st.selectbox("Иесі", list(owner_names), format_func=owner_names.get)
-            if st.form_submit_button("Жануар қосу"):
+            if st.form_submit_button("Жануар қосу", disabled=not can_edit):
                 submit("pets", dict(name=name.strip(), species=species, age_years=age, owner_id=owner_id))
     else:
         st.info("Алдымен «Иелері» бөлімінде жануардың иесін тіркеңіз.")
@@ -130,7 +158,7 @@ with tab_vets:
     with st.form("vet"):
         name = st.text_input("Ветеринардың аты-жөні", max_chars=100)
         specialty = st.text_input("Мамандануы", max_chars=100, placeholder="Мысалы: жалпы практика")
-        if st.form_submit_button("Ветеринар қосу"):
+        if st.form_submit_button("Ветеринар қосу", disabled=not can_edit):
             submit("veterinarians", dict(name=name.strip(), specialty=specialty.strip()))
     st.dataframe([{"ID": v["id"], "Аты-жөні": v["name"], "Мамандануы": v["specialty"]} for v in shown_vets], width="stretch")
     delete_panel("veterinarians", shown_vets, vet_names)
@@ -147,7 +175,7 @@ with tab_visits:
             day = st.date_input("Қабылдау күні", value=datetime.now(ZoneInfo("Asia/Qyzylorda")).date())
             clock = st.time_input("Қабылдау уақыты", value=time(10, 0), step=1800)
             reason = st.text_area("Келу себебі", max_chars=500, placeholder="Мысалы: жоспарлы тексеру")
-            if st.form_submit_button("Қабылдауға жазу"):
+            if st.form_submit_button("Қабылдауға жазу", disabled=not can_edit):
                 submit("appointments", dict(pet_id=pet_id, veterinarian_id=veterinarian_id,
                        starts_at=datetime.combine(day, clock).isoformat(), reason=reason.strip()))
     else:

@@ -7,13 +7,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from sqlmodel import Session, select
 from app.db.session import get_session
+from app.security import require_access
 from app.models.clinic import (
     Appointment, AppointmentCreate, Owner, OwnerCreate,
     Pet, PetCreate, Veterinarian, VeterinarianCreate,
     OwnerUpdate, PetUpdate, VeterinarianUpdate, AppointmentUpdate,
 )
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(require_access)])
 DBSession = Annotated[Session, Depends(get_session)]
 
 
@@ -226,3 +227,23 @@ def update_appointment(record_id: int, data: AppointmentUpdate, session: DBSessi
 @router.delete("/appointments/{record_id}", status_code=204)
 def delete_appointment(record_id: int, session: DBSession):
     return delete_record(session, Appointment, record_id)
+
+
+@router.put("/owners/{record_id}", response_model=Owner)
+def replace_owner(record_id: int, data: OwnerCreate, session: DBSession):
+    return update_record(session, Owner, OwnerCreate, record_id, data)
+
+
+@router.put("/pets/{record_id}", response_model=Pet)
+def replace_pet(record_id: int, data: PetCreate, session: DBSession):
+    return update_record(session, Pet, PetCreate, record_id, data)
+
+
+@router.put("/veterinarians/{record_id}", response_model=Veterinarian)
+def replace_veterinarian(record_id: int, data: VeterinarianCreate, session: DBSession):
+    return update_record(session, Veterinarian, VeterinarianCreate, record_id, data)
+
+
+@router.put("/appointments/{record_id}", response_model=Appointment)
+def replace_appointment(record_id: int, data: AppointmentCreate, session: DBSession):
+    return update_record(session, Appointment, AppointmentCreate, record_id, data)

@@ -244,6 +244,7 @@ ENV/
 .streamlit/secrets.toml
 # Temporary tool files
 .tmp/
+.local/
 .uv-cache/
 .DS_Store
 Thumbs.db
