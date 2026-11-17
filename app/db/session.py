@@ -27,6 +27,11 @@ def enable_foreign_keys(connection, _):
 
 
 def init_db(db_engine=engine):
+    # Set once at initialization, not on every connection. WAL lets readers
+    # continue while a writer commits; SQLite still permits only one writer.
+    if db_engine.dialect.name == "sqlite":
+        with db_engine.connect() as connection:
+            connection.exec_driver_sql("PRAGMA journal_mode=WAL")
     SQLModel.metadata.create_all(db_engine)
 
 

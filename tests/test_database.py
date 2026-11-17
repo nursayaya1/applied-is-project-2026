@@ -2,6 +2,7 @@ from sqlalchemy import event, inspect
 from sqlmodel import Session, create_engine, select
 
 from app.db.seed import seed_data
+from app.db.session import init_db
 from app.models import Owner, Pet, Veterinarian, Appointment
 
 
@@ -21,4 +22,19 @@ def test_seed_and_relationships(tmp_path):
         assert vet.appointments[0].veterinarian.id == vet.id
         assert len(session.exec(select(Appointment)).all()) == 4
     assert len(inspect(engine).get_foreign_keys("appointment")) == 2
+    engine.dispose()
+
+
+def test_file_database_uses_wal_and_preserves_data(tmp_path):
+    engine = create_engine(f"sqlite:///{(tmp_path / 'wal.db').as_posix()}")
+    init_db(engine)
+    with Session(engine) as session:
+        session.add(Owner(name="WAL persistence", phone="test"))
+        session.commit()
+    engine.dispose()
+    init_db(engine)
+    with engine.connect() as connection:
+        assert connection.exec_driver_sql("PRAGMA journal_mode").scalar() == "wal"
+    with Session(engine) as session:
+        assert session.exec(select(Owner)).one().name == "WAL persistence"
     engine.dispose()
