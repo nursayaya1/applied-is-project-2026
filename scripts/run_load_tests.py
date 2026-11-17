@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import shutil
 import statistics
 import subprocess
 import sys
@@ -19,10 +20,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--quick", action="store_true", help="CI smoke: 5 users for 10 seconds, not full lab evidence")
     parser.add_argument("--output", default="docs/reports/lab08/load")
+    parser.add_argument("--users", type=int, help="One diagnostic scenario; not the full lab suite")
+    parser.add_argument("--seconds", type=int, default=180)
     args = parser.parse_args()
     output = Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     scenarios = [(5, 10)] if args.quick else [(5, 60), (20, 120), (50, 180), (100, 180)]
+    if args.users:
+        scenarios = [(args.users, args.seconds)]
     report = {"started_utc": datetime.now(timezone.utc).isoformat(), "platform": platform.platform(),
               "python": platform.python_version(), "logical_cpus": psutil.cpu_count(),
               "locust": importlib.metadata.version("locust"), "quick": args.quick,
@@ -62,8 +67,10 @@ def main():
                         time.sleep(1)
                 finally:
                     stop_process(process)
-                if process.returncode:
-                    raise RuntimeError(f"Locust failed: inspect {prefix}.log")
+                # Locust returns 1 for measured request failures: keep that evidence.
+                if process.returncode not in (0, 1):
+                    raise RuntimeError(f"Locust could not run: inspect {prefix}.log")
+            shutil.copyfile(server.test_log, str(prefix) + "_server.log")
             with open(str(prefix) + "_resources.csv", "w", newline="", encoding="utf-8") as stream:
                 writer = csv.DictWriter(stream, fieldnames=list(samples[0]))
                 writer.writeheader()
@@ -79,7 +86,9 @@ def main():
                 "backend_cpu_peak": max(s["backend_cpu_percent"] for s in samples),
                 "backend_rss_peak_mb": max(s["backend_rss_mb"] for s in samples)})
             (output / "summary.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-            print(f"PASS: {users} users, {count} requests, {failures} failures", flush=True)
+            print(f"RESULT: {users} users, {count} requests, {failures} failures", flush=True)
+            if args.quick and failures:
+                raise RuntimeError("Short CI load regression has failed requests")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 """Requests -> real Uvicorn -> SQLite; save responses, never tokens/passwords."""
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import requests
 from scripts.test_server import test_server
@@ -33,6 +34,14 @@ def main():
         check("Without authorization", "GET", "/api/owners", 401, headers={"Authorization": ""})
         check("Wrong login", "POST", "/api/auth/login", 401, json={"username": "missing", "password": "incorrect"})
         check("Literal SQL injection search", "GET", "/api/owners", 200, params={"search": "' OR 1=1 --"})
+        # Regression for the file-backed SQLite QueuePool exhaustion found at 100 users.
+        def read_in_parallel(_):
+            return requests.get(url + "/api/owners", headers={"Authorization": "Bearer " + token}, timeout=10).status_code
+        with ThreadPoolExecutor(max_workers=50) as workers:
+            statuses = list(workers.map(read_in_parallel, range(100)))
+        assert statuses == [200] * 100
+        records.append({"name": "Concurrent reads", "method": "GET", "path": "/api/owners",
+                        "expected": 200, "actual": 200, "body": {"requests": 100, "workers": 50, "failures": 0}})
         session.close()
     output = Path("docs/reports/lab08")
     output.mkdir(parents=True, exist_ok=True)

@@ -51,6 +51,7 @@ engine.dispose()
             process = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app",
                                         "--host", "127.0.0.1", "--port", str(port), "--no-access-log"],
                                        cwd=ROOT, env=env, stdout=log, stderr=log)
+            process.test_log = Path(folder) / "server.log"
             url = f"http://127.0.0.1:{port}"
             try:
                 for _ in range(100):
