@@ -1,0 +1,25 @@
+{
+  "started_utc": "2026-11-17T19:02:50.074723+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.14",
+  "logical_cpus": 6,
+  "locust": "2.47.0",
+  "quick": false,
+  "workload": "4 browse : 2 filtered search : 1 create/PUT/delete; wait 0.2–0.8s; login excluded",
+  "cpu_definition": "Sum of backend process tree CPU%, 100%=one logical core; load generator excluded",
+  "scenarios": [
+    {
+      "users": 100,
+      "duration_s": 45,
+      "requests": 93,
+      "failures": 62,
+      "error_percent": 66.667,
+      "mean_ms": 14287.432038706542,
+      "p95_ms": 30000.0,
+      "rps": 1.026107041722072,
+      "backend_cpu_mean": 1.1411111111111112,
+      "backend_cpu_peak": 40.0,
+      "backend_rss_peak_mb": 97.21
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "started_utc": "2026-11-17T19:04:52.109192+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.14",
+  "logical_cpus": 6,
+  "locust": "2.47.0",
+  "quick": false,
+  "workload": "4 browse : 2 filtered search : 1 create/PUT/delete; wait 0.2–0.8s; login excluded",
+  "cpu_definition": "Sum of backend process tree CPU%, 100%=one logical core; load generator excluded",
+  "scenarios": [
+    {
+      "users": 5,
+      "duration_s": 60,
+      "requests": 1634,
+      "failures": 0,
+      "error_percent": 0.0,
+      "mean_ms": 15.346996450492933,
+      "p95_ms": 50.0,
+      "rps": 27.488832711542646,
+      "backend_cpu_mean": 17.828333333333333,
+      "backend_cpu_peak": 32.3,
+      "backend_rss_peak_mb": 78.89
+    },
+    {
+      "users": 20,
+      "duration_s": 120,
+      "requests": 11055,
+      "failures": 0,
+      "error_percent": 0.0,
+      "mean_ms": 50.61134765249934,
+      "p95_ms": 150.0,
+      "rps": 92.9156920023833,
+      "backend_cpu_mean": 62.26386554621849,
+      "backend_cpu_peak": 89.3,
+      "backend_rss_peak_mb": 83.39
+    },
+    {
+      "users": 50,
+      "duration_s": 180,
+      "requests": 22752,
+      "failures": 4,
+      "error_percent": 0.018,
+      "mean_ms": 225.93274325348048,
+      "p95_ms": 480.0,
+      "rps": 126.47611587515529,
+      "backend_cpu_mean": 94.65084745762712,
+      "backend_cpu_peak": 130.7,
+      "backend_rss_peak_mb": 96.56
+    },
+    {
+      "users": 100,
+      "duration_s": 180,
+      "requests": 18081,
+      "failures": 58,
+      "error_percent": 0.321,
+      "mean_ms": 831.334869525703,
+      "p95_ms": 1300.0,
+      "rps": 99.7114397104896,
+      "backend_cpu_mean": 95.06573033707865,
+      "backend_cpu_peak": 134.3,
+      "backend_rss_peak_mb": 110.96
+    }
+  ]
+}

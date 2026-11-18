@@ -245,6 +245,7 @@ ENV/
 # Temporary tool files
 .tmp/
 .local/
+!docs/reports/**/*.log
 .uv-cache/
 .DS_Store
 Thumbs.db

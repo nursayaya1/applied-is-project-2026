@@ -1,0 +1,42 @@
+[
+  {
+    "label": "NullPool және WAL түзетуінен кейін",
+    "id": 44156597694,
+    "head_sha": "3a1ecf36d72e765a91efa6010776894a7ddb5337",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/nursayaya1/applied-is-project-2026/actions/runs/44156597694"
+  },
+  {
+    "label": "NullPool түзетуінен кейін",
+    "id": 44154944508,
+    "head_sha": "5309d4996332635cd545340321f5a7ddf9eb2487",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/nursayaya1/applied-is-project-2026/actions/runs/44154944508"
+  },
+  {
+    "label": "Қалыпты режимде қайта тексеру",
+    "id": 44153812651,
+    "head_sha": "2eb219663d6aedaae81a54afebdbc53b9bcead19",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/nursayaya1/applied-is-project-2026/actions/runs/44153812651"
+  },
+  {
+    "label": "Әдейі қате тәжірибесі",
+    "id": 44153412878,
+    "head_sha": "2eb219663d6aedaae81a54afebdbc53b9bcead19",
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/nursayaya1/applied-is-project-2026/actions/runs/44153412878"
+  },
+  {
+    "label": "Бірінші қалыпты CI",
+    "id": 44153209541,
+    "head_sha": "2eb219663d6aedaae81a54afebdbc53b9bcead19",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/nursayaya1/applied-is-project-2026/actions/runs/44153209541"
+  }
+]

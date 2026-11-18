@@ -1,0 +1,6 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+DELETE,/api/owners/[id],"ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None)",5,2026-11-17T19:12:16Z,2026-11-17T19:13:23Z
+POST,/api/owners,"CatchResponseError('Expected 201, got 500')",21,2026-11-17T19:11:33Z,2026-11-17T19:13:58Z
+PUT,/api/owners/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/owners/[id]'),12,2026-11-17T19:11:40Z,2026-11-17T19:13:23Z
+DELETE,/api/owners/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/owners/[id]'),19,2026-11-17T19:11:43Z,2026-11-17T19:14:02Z
+DELETE,/api/owners/[id],"ConnectionAbortedError(10053, 'Программа на вашем хост-компьютере разорвала установленное подключение', None, 10053, None)",1,2026-11-17T19:12:02Z,2026-11-17T19:12:02Z

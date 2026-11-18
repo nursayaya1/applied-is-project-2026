@@ -1,0 +1,50 @@
+[2026-11-17 23:57:58,944] Nursaya/INFO/locust.main: Starting Locust 2.47.0
+[2026-11-17 23:57:58,954] Nursaya/INFO/locust.main: Run time limit set to 180 seconds
+[2026-11-17 23:57:58,958] Nursaya/INFO/locust.runners: Ramping to 100 users at a rate of 100.00 per second
+[2026-11-17 23:57:59,023] Nursaya/INFO/locust.runners: All users spawned: {"ClinicUser": 100} (100 total users)
+[2026-11-18 00:00:58,577] Nursaya/INFO/locust.main: --run-time limit reached, shutting down
+[2026-11-18 00:01:08,672] Nursaya/INFO/locust.runners: Not all users finished their tasks & terminated in 10.0 seconds. Stopping them...
+[2026-11-18 00:01:29,820] Nursaya/INFO/locust.main: Shutting down (exit code 1)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /api/appointments                                                                 40   38(95.00%) |  31519       2   90071  60000 |    0.19        0.18
+GET      /api/owners                                                                       86   64(74.42%) |  47805      85  119896  60000 |    0.41        0.30
+POST     /api/owners                                                                       28   21(75.00%) |  56755     262  119795  60000 |    0.13        0.10
+DELETE   /api/owners/[id]                                                                   4    3(75.00%) |   5278       7   21088     10 |    0.02        0.01
+PUT      /api/owners/[id]                                                                   6    4(66.67%) |  65128   30176  119963  60000 |    0.03        0.02
+GET      /api/pets                                                                         71   62(87.32%) |  22440       1  119975     19 |    0.34        0.29
+GET      /api/pets?filters                                                                 64   42(65.62%) |  49733     132  119722  60000 |    0.30        0.20
+GET      /api/veterinarians                                                                62   48(77.42%) |  53244       1   90135  60000 |    0.29        0.23
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                       361  282(78.12%) |  42799       1  119975  60000 |    1.71        1.34
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /api/appointments                                                                   60000  60000  60000  60000  60000  90000  90000  90000  90000  90000  90000     40
+GET      /api/owners                                                                         60000  60000  60000  60000  60000  89000 120000 120000 120000 120000 120000     86
+POST     /api/owners                                                                         60000  60000  60000  60000  90000  90000 120000 120000 120000 120000 120000     28
+DELETE   /api/owners/[id]                                                                       10     10  21000  21000  21000  21000  21000  21000  21000  21000  21000      4
+PUT      /api/owners/[id]                                                                    60000  60000  90000  90000 120000 120000 120000 120000 120000 120000 120000      6
+GET      /api/pets                                                                              19  30000  60000  60000  60000  90000  90000 120000 120000 120000 120000     71
+GET      /api/pets?filters                                                                   60000  60000  60000  60000  89000  90000 119000 120000 120000 120000 120000     64
+GET      /api/veterinarians                                                                  60000  60000  60000  90000  90000  90000  90000  90000  90000  90000  90000     62
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                          60000  60000  60000  60000  89000  90000  90000 120000 120000 120000 120000    361
+
+Error report
+# occurrences      Error                                                                                               
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+64                 GET /api/owners: Expected 200, got 500                                                              
+42                 GET /api/pets?filters: HTTPError('500 Server Error: Internal Server Error for url: /api/pets?filters')
+44                 GET /api/pets: Expected 200, got 0                                                                  
+21                 POST /api/owners: Expected 201, got 500                                                             
+18                 GET /api/pets: Expected 200, got 500                                                                
+10                 GET /api/veterinarians: Expected 200, got 0                                                         
+4                  PUT /api/owners/[id]: HTTPError('500 Server Error: Internal Server Error for url: /api/owners/[id]')
+3                  DELETE /api/owners/[id]: ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None)
+38                 GET /api/veterinarians: Expected 200, got 500                                                       
+20                 GET /api/appointments: Expected 200, got 0                                                          
+18                 GET /api/appointments: Expected 200, got 500                                                        
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+

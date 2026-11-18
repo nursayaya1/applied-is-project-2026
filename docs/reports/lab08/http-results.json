@@ -1,0 +1,188 @@
+[
+  {
+    "name": "Read seed data",
+    "method": "GET",
+    "path": "/api/owners",
+    "expected": 200,
+    "actual": 200,
+    "body": [
+      {
+        "name": "Айгүл",
+        "phone": "+7 700 000 00 01",
+        "id": 1
+      },
+      {
+        "name": "Ерлан",
+        "phone": "+7 700 000 00 02",
+        "id": 2
+      },
+      {
+        "name": "Аружан",
+        "phone": "+7 700 000 00 03",
+        "id": 3
+      }
+    ]
+  },
+  {
+    "name": "Create",
+    "method": "POST",
+    "path": "/api/owners",
+    "expected": 201,
+    "actual": 201,
+    "body": {
+      "name": "HTTP test",
+      "phone": "test-only",
+      "id": 4
+    }
+  },
+  {
+    "name": "Read created",
+    "method": "GET",
+    "path": "/api/owners/4",
+    "expected": 200,
+    "actual": 200,
+    "body": {
+      "name": "HTTP test",
+      "phone": "test-only",
+      "id": 4
+    }
+  },
+  {
+    "name": "Full replacement",
+    "method": "PUT",
+    "path": "/api/owners/4",
+    "expected": 200,
+    "actual": 200,
+    "body": {
+      "name": "HTTP updated",
+      "phone": "new",
+      "id": 4
+    }
+  },
+  {
+    "name": "Read updated",
+    "method": "GET",
+    "path": "/api/owners/4",
+    "expected": 200,
+    "actual": 200,
+    "body": {
+      "name": "HTTP updated",
+      "phone": "new",
+      "id": 4
+    }
+  },
+  {
+    "name": "Delete",
+    "method": "DELETE",
+    "path": "/api/owners/4",
+    "expected": 204,
+    "actual": 204,
+    "body": null
+  },
+  {
+    "name": "Read deleted",
+    "method": "GET",
+    "path": "/api/owners/4",
+    "expected": 404,
+    "actual": 404,
+    "body": {
+      "detail": "Жазба табылмады"
+    }
+  },
+  {
+    "name": "Empty input",
+    "method": "POST",
+    "path": "/api/owners",
+    "expected": 422,
+    "actual": 422,
+    "body": {
+      "detail": [
+        {
+          "loc": [
+            "body",
+            "name"
+          ],
+          "type": "missing",
+          "msg": "Жарамсыз дерек"
+        },
+        {
+          "loc": [
+            "body",
+            "phone"
+          ],
+          "type": "missing",
+          "msg": "Жарамсыз дерек"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Malformed JSON",
+    "method": "POST",
+    "path": "/api/owners",
+    "expected": 400,
+    "actual": 400,
+    "body": {
+      "detail": [
+        {
+          "loc": [
+            "body",
+            1
+          ],
+          "type": "json_invalid",
+          "msg": "Жарамсыз дерек"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Unknown identifier",
+    "method": "GET",
+    "path": "/api/pets/999999",
+    "expected": 404,
+    "actual": 404,
+    "body": {
+      "detail": "Жазба табылмады"
+    }
+  },
+  {
+    "name": "Without authorization",
+    "method": "GET",
+    "path": "/api/owners",
+    "expected": 401,
+    "actual": 401,
+    "body": {
+      "detail": "Кіру қажет немесе сессия жарамсыз"
+    }
+  },
+  {
+    "name": "Wrong login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "expected": 401,
+    "actual": 401,
+    "body": {
+      "detail": "Логин немесе құпиясөз қате"
+    }
+  },
+  {
+    "name": "Literal SQL injection search",
+    "method": "GET",
+    "path": "/api/owners",
+    "expected": 200,
+    "actual": 200,
+    "body": []
+  },
+  {
+    "name": "Concurrent reads",
+    "method": "GET",
+    "path": "/api/owners",
+    "expected": 200,
+    "actual": 200,
+    "body": {
+      "requests": 100,
+      "workers": 50,
+      "failures": 0
+    }
+  }
+]

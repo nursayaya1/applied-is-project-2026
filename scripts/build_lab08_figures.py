@@ -28,6 +28,7 @@ def main():
         for x, y in zip(users, values):
             axis.annotate(f"{y:.1f}", (x, y), xytext=(0, 9), textcoords="offset points", ha="center", fontsize=9)
         axis.margins(y=.25)
+        axis.set_ylim(bottom=0)
     fig.savefig(output / "load-chart.png", dpi=180)
     plt.close(fig)
 

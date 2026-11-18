@@ -1,0 +1,9 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/api/pets?filters,HTTPError('500 Server Error: Internal Server Error for url: /api/pets?filters'),7,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+DELETE,/api/owners/[id],"ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None)",1,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+GET,/api/veterinarians,"CatchResponseError('Expected 200, got 0')",5,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+POST,/api/owners,"CatchResponseError('Expected 201, got 500')",4,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+PUT,/api/owners/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/owners/[id]'),1,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+GET,/api/pets,"CatchResponseError('Expected 200, got 0')",18,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+GET,/api/owners,"CatchResponseError('Expected 200, got 500')",20,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z
+GET,/api/pets,"CatchResponseError('Expected 200, got 500')",6,2026-11-17T19:03:25Z,2026-11-17T19:03:25Z

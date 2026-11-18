@@ -1,0 +1,45 @@
+[2026-11-18 00:02:55,037] Nursaya/INFO/locust.main: Starting Locust 2.47.0
+[2026-11-18 00:02:55,041] Nursaya/INFO/locust.main: Run time limit set to 45 seconds
+[2026-11-18 00:02:55,043] Nursaya/INFO/locust.runners: Ramping to 100 users at a rate of 100.00 per second
+[2026-11-18 00:02:55,071] Nursaya/INFO/locust.runners: All users spawned: {"ClinicUser": 100} (100 total users)
+[2026-11-18 00:03:39,689] Nursaya/INFO/locust.main: --run-time limit reached, shutting down
+[2026-11-18 00:03:49,895] Nursaya/INFO/locust.runners: Not all users finished their tasks & terminated in 10.0 seconds. Stopping them...
+[2026-11-18 00:04:25,939] Nursaya/INFO/locust.main: Shutting down (exit code 1)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /api/owners                                                                       37   20(54.05%) |  16576     206   30499  30000 |    0.41        0.22
+POST     /api/owners                                                                       11    4(36.36%) |  16713     224   30499  30000 |    0.12        0.04
+DELETE   /api/owners/[id]                                                                   7    1(14.29%) |  30695       5   35968  35968 |    0.08        0.01
+PUT      /api/owners/[id]                                                                   1   1(100.00%) |  30068   30068   30068  30068 |    0.01        0.01
+GET      /api/pets                                                                         24  24(100.00%) |   7532       1   30160     15 |    0.26        0.26
+GET      /api/pets?filters                                                                 11    7(63.64%) |  19418     208   30483  30000 |    0.12        0.08
+GET      /api/veterinarians                                                                 5   5(100.00%) |      6       1      18      3 |    0.06        0.06
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                        96   62(64.58%) |  14964       1   35968    380 |    1.06        0.68
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /api/owners                                                                         30000  30000  30000  30000  30000  30000  30000  30000  30000  30000  30000     37
+POST     /api/owners                                                                         30000  30000  30000  30000  30000  30000  30000  30000  30000  30000  30000     11
+DELETE   /api/owners/[id]                                                                    36000  36000  36000  36000  36000  36000  36000  36000  36000  36000  36000      7
+PUT      /api/owners/[id]                                                                    30000  30000  30000  30000  30000  30000  30000  30000  30000  30000  30000      1
+GET      /api/pets                                                                              15     16  30000  30000  30000  30000  30000  30000  30000  30000  30000     24
+GET      /api/pets?filters                                                                   30000  30000  30000  30000  30000  30000  30000  30000  30000  30000  30000     11
+GET      /api/veterinarians                                                                      3      9      9     18     18     18     18     18     18     18     18      5
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                            380  30000  30000  30000  30000  36000  36000  36000  36000  36000  36000     96
+
+Error report
+# occurrences      Error                                                                                               
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+6                  GET /api/pets: Expected 200, got 500                                                                
+5                  GET /api/veterinarians: Expected 200, got 0                                                         
+7                  GET /api/pets?filters: HTTPError('500 Server Error: Internal Server Error for url: /api/pets?filters')
+4                  POST /api/owners: Expected 201, got 500                                                             
+20                 GET /api/owners: Expected 200, got 500                                                              
+18                 GET /api/pets: Expected 200, got 0                                                                  
+1                  PUT /api/owners/[id]: HTTPError('500 Server Error: Internal Server Error for url: /api/owners/[id]')
+1                  DELETE /api/owners/[id]: ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None)
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+
